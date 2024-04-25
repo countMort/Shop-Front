@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import OrdersTable from "../features/Orders/OrdersTable"
-import Pagination from "../features/Orders/Pagination"
+import Pagination from "../features/UI/Pagination"
 import { Link } from "react-router-dom"
 import { OrdersApi } from "../api/orders.api"
 import { Order } from "../types/order.types"

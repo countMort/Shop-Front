@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { Item, NewOrder, Order } from "../types/order.types"
 import { useParams } from "react-router-dom"
 import { OrdersApi } from "../api/orders.api"
-import OrderForm from "../features/CreditOrder/OrderForm"
+import OrderForm from "../features/Orders/OrderForm"
 import { ItemsApi } from "../api/items.api"
 
 const OrderPage = () => {
@@ -18,8 +18,6 @@ const OrderPage = () => {
       const items_request = ItemsApi.READ()
       Promise.all([order_request, items_request])
         .then((res) => {
-          console.log(res)
-
           setOrder(res[0])
           setAvailableItems(res[1])
         })

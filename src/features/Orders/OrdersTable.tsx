@@ -53,6 +53,13 @@ const OrdersTable = ({ orders, onDeleteClick, loading }: OrderTableProps) => {
               <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                 <Button
                   variant="sm"
+                  onClick={() => navigate(`/pdf/${order.id}`)}
+                  className="mr-1"
+                >
+                  PDF
+                </Button>
+                <Button
+                  variant="sm"
                   onClick={() => {
                     navigate(order.id)
                   }}

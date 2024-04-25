@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import OrderForm from "../features/CreditOrder/OrderForm"
+import OrderForm from "../features/Orders/OrderForm"
 import { Item, NewOrder } from "../types/order.types"
 import { ItemsApi } from "../api/items.api"
 import { OrdersApi } from "../api/orders.api"

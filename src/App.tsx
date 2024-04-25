@@ -2,8 +2,9 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import OrdersPage from "./pages/OrdersPage"
 import EditOrderPage from "./pages/EditOrderPage"
 import NewOrderPage from "./pages/NewOrderPage"
+import { PDFPage } from "./pages/PDFPage"
 import { Bounce, ToastContainer } from "react-toastify"
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css"
 import "./App.css"
 
 const App = () => {
@@ -14,7 +15,7 @@ const App = () => {
           <Route path="/" element={<OrdersPage />} />
           <Route path="/new" element={<NewOrderPage />} />
           <Route path="/:id" element={<EditOrderPage />} />
-          {/* <Route path="/orders/:orderId/edit" element={<EditOrder />} /> */}
+          <Route path="/pdf/:id" element={<PDFPage />} />
         </Routes>
       </Router>
       <ToastContainer
