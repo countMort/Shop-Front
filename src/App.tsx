@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import OrdersPage from "./pages/OrdersPage"
-import OrderPage from "./pages/OrderPage"
+import EditOrderPage from "./pages/EditOrderPage"
 import NewOrderPage from "./pages/NewOrderPage"
-// import EditOrder from "./pages/EditOrder"
+import { Bounce, ToastContainer } from "react-toastify"
+import 'react-toastify/dist/ReactToastify.css';
 import "./App.css"
 
 const App = () => {
@@ -12,10 +13,23 @@ const App = () => {
         <Routes>
           <Route path="/" element={<OrdersPage />} />
           <Route path="/new" element={<NewOrderPage />} />
-          <Route path="/:id" element={<OrderPage />} />
+          <Route path="/:id" element={<EditOrderPage />} />
           {/* <Route path="/orders/:orderId/edit" element={<EditOrder />} /> */}
         </Routes>
       </Router>
+      <ToastContainer
+        position="bottom-left"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition={Bounce}
+      />
     </div>
   )
 }

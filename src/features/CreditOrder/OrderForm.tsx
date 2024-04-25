@@ -2,14 +2,47 @@ import {
   ChangeEvent,
   ChangeEventHandler,
   FormEventHandler,
+  useEffect,
+  useMemo,
   useState,
 } from "react"
-import { OrderFormProps } from "./CreditOrder.type"
-import { NewOrder } from "../Orders/Orders.type"
-import { available_items } from "./CreditOrder.param"
+import {
+  Item,
+  ItemChunk,
+  NewOrder,
+  OrderFormProps,
+} from "../../types/order.types"
+import TableLoading from "../UI/TableLoading"
+import Spinner from "../UI/Spinner"
+import { DeleteButton } from "../UI/Button"
 
-const OrderForm = ({ initialValues, onSubmit }: OrderFormProps) => {
-  const [formData, setFormData] = useState(initialValues || new NewOrder())
+const OrderForm = ({
+  initialValues,
+  loading,
+  sending,
+  available_items,
+  onSubmit,
+}: OrderFormProps) => {
+  const [formData, setFormData] = useState(new NewOrder([new ItemChunk()]))
+
+  const available_items_obj = useMemo(() => {
+    return available_items.reduce((pv, cv) => {
+      return { ...pv, [cv.id]: cv }
+    }, {} as Record<string, Item>)
+  }, [available_items])
+
+  const total = useMemo(() => {
+    const items = formData.items
+    return (
+      items.reduce((pv, cv) => {
+        return (pv += (available_items_obj[cv.id]?.price || 0) * cv.quantity)
+      }, 0) || 0
+    )
+  }, [formData.items, available_items_obj])
+
+  useEffect(() => {
+    if (initialValues) setFormData(initialValues)
+  }, [initialValues])
 
   const handleOrderChange: ChangeEventHandler<
     HTMLInputElement | HTMLSelectElement
@@ -23,17 +56,11 @@ const OrderForm = ({ initialValues, onSubmit }: OrderFormProps) => {
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const items = [...formData.items]
-    const { value, name } = event.target
-    if (["price", "quantity"].includes(name)) {
-      // @ts-expect-error idk
-      items[index][name] = parseInt(value, 10)
+    const { name, value } = event.target
+    if (name === "id") {
+      items[index].id = event.target.value
     } else {
-      // @ts-expect-error idk
-      items[index][name] = value
-      if (name === "name") {
-        const price = available_items.find((ai) => ai.name === value)?.price
-        if (price) items[index].price = price
-      }
+      items[index].quantity = parseInt(value, 10)
     }
 
     setFormData({ ...formData, items })
@@ -47,7 +74,7 @@ const OrderForm = ({ initialValues, onSubmit }: OrderFormProps) => {
   const handleAddItem = () => {
     setFormData({
       ...formData,
-      items: [...formData.items, { id: "1", name: "", price: 0, quantity: 0 }],
+      items: [...formData.items, { id: "", quantity: 0 }],
     })
   }
 
@@ -58,7 +85,16 @@ const OrderForm = ({ initialValues, onSubmit }: OrderFormProps) => {
   const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault()
     if (validateForm()) {
-      onSubmit(formData) // Pass validated form data to parent component
+      const items_obj = formData.items.reduce((pv, cv) => {
+        return { ...pv, [cv.id]: (pv[cv.id] || 0) + cv.quantity }
+      }, {} as Record<string, number>)
+
+      const items = Object.keys(items_obj).map((id) => ({
+        id,
+        quantity: items_obj[id],
+      }))
+
+      onSubmit({ ...formData, items })
     } else {
       // Handle form validation errors (display error messages)
       console.error("Form validation failed")
@@ -94,7 +130,7 @@ const OrderForm = ({ initialValues, onSubmit }: OrderFormProps) => {
           </label>
           <input
             name="customer_address"
-            // value={formData.customer_address}
+            value={formData.customer_address}
             onChange={handleOrderChange}
             className="input py-2 sm:text-sm mt-1 block"
             required
@@ -113,80 +149,88 @@ const OrderForm = ({ initialValues, onSubmit }: OrderFormProps) => {
             </tr>
           </thead>
           <tbody>
-            {formData.items.map((item, index) => (
-              <tr key={index} className="border-b border-gray-300">
-                <td className="px-2 py-1">
-                  <select
-                    name="name"
-                    value={item.name}
-                    onChange={(event) => handleItemChange(index, event)}
-                    className="input"
-                    required
-                  >
-                    <option value="" disabled>
-                      Select Item
-                    </option>
-                    {available_items.map((ai, i) => (
-                      <option value={ai.name} key={i + "-" + ai.name}>
-                        {ai.name}
+            {loading ? (
+              <TableLoading colSpan={4} />
+            ) : (
+              formData.items.map((item, index) => (
+                <tr key={index} className="border-b border-gray-300">
+                  <td className="px-2 py-1">
+                    <select
+                      name="id"
+                      value={item.id}
+                      onChange={(event) => handleItemChange(index, event)}
+                      className="input"
+                      required
+                    >
+                      <option value="" disabled>
+                        Select Item
                       </option>
-                    ))}
-                  </select>
-                </td>
-                <td className="px-2 py-1">
-                  <input
-                    name="price"
-                    type="number"
-                    min="0"
-                    value={item.price}
-                    onChange={(event) => handleItemChange(index, event)}
-                    className="input"
-                    required
-                    disabled
-                  />
-                </td>
-                <td className="px-2 py-1">
-                  <input
-                    name="quantity"
-                    type="number"
-                    min="0"
-                    value={item.quantity}
-                    onChange={(event) => handleItemChange(index, event)}
-                    className="input"
-                    required
-                  />
-                </td>
-                <td className="px-2 py-1">
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteItem(index)}
-                    className="px-2 py-1 text-xs font-bold text-red-500 hover:bg-red-100 rounded-md"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
+                      {available_items.map((ai, i) => (
+                        <option value={ai.id} key={i + "-" + ai.name}>
+                          {ai.name}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="px-2 py-1">
+                    <input
+                      name="price"
+                      type="number"
+                      min="0"
+                      value={available_items_obj[item.id]?.price || 0}
+                      className="input"
+                      required
+                      disabled
+                    />
+                  </td>
+                  <td className="px-2 py-1">
+                    <input
+                      name="quantity"
+                      type="number"
+                      min="1"
+                      value={item.quantity}
+                      onChange={(event) => handleItemChange(index, event)}
+                      className="input"
+                      required
+                    />
+                  </td>
+                  <td className="px-2 py-1">
+                    <DeleteButton onClick={() => handleDeleteItem(index)} />
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
 
-        <div className="flex justify-end mt-2">
-          <button
-            type="button"
-            onClick={handleAddItem}
-            className="px-4 py-2 bg-green-500 hover:bg-green-700 text-white font-bold rounded-md focus:outline-none"
-          >
-            Add Item
-          </button>
-        </div>
+        {!loading && (
+          <div className="flex justify-between mt-2">
+            <div>
+              Total: {total} $
+              <button
+                type="submit"
+                className="ml-2 px-4 py-2 hover:bg-gray-100 font-bold rounded-md focus:outline-none border-2"
+                disabled={!formData.items.length}
+              >
+                {sending ? (
+                  <Spinner />
+                ) : initialValues ? (
+                  "Update Order"
+                ) : (
+                  "Create Order"
+                )}
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={handleAddItem}
+              className="px-4 py-2 hover:bg-green-100 text-green-500 text-sm font-bold rounded-md focus:outline-none border-2 border-green-200"
+            >
+              + Add Item
+            </button>
+          </div>
+        )}
       </div>
-
-      <button
-        type="submit"
-        className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-      >
-        {initialValues ? "Update Order" : "Create Order"}
-      </button>
     </form>
   )
 }

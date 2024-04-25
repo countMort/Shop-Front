@@ -1,4 +1,4 @@
-import { PaginationProps } from "./Orders.type"
+import { PaginationProps } from "../../types/order.types"
 
 const Pagination = ({
   currentPage,
@@ -39,7 +39,7 @@ const Pagination = ({
         ))}
         <li>
           <button
-            className="rounded-r-md px-4 py-2 bg-gray-200 text-gray-600 hover:bg-gray-300 focus:outline-none"
+            className="rounded-r-md px-8 py-2 bg-gray-200 text-gray-600 hover:bg-gray-300 focus:outline-none"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
           >
